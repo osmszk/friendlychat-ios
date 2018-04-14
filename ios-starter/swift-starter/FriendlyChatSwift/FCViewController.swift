@@ -59,24 +59,6 @@ class FCViewController: UIViewController,
         }
     }
     
-    // MARK: - Private Methods
-    
-    private func configureDatabase() {
-        ref = Database.database().reference()
-        
-        _refHandle = self.ref.child(roomKey).observe(.childAdded, with: { [weak self] (snapshot) -> Void in
-            guard let strongSelf = self else {
-                return
-            }
-            strongSelf.messages.append(snapshot)
-            strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
-        })
-    }
-    
-    func configureStorage() {
-        storageRef = Storage.storage().reference()
-    }
-    
     // MARK: - Action Methods
     
     @IBAction func didPressFreshConfig(_ sender: AnyObject) {
@@ -170,7 +152,8 @@ class FCViewController: UIViewController,
         return cell
     }
     
-    // UITextViewDelegate protocol methods
+    // MARK: - UITextViewDelegate
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         guard let text = textField.text else {
             return true
@@ -182,9 +165,27 @@ class FCViewController: UIViewController,
         return true
     }
     
+    // MARK: - Private Methods
+    
+    private func configureDatabase() {
+        ref = Database.database().reference()
+        
+        _refHandle = self.ref.child(roomKey).observe(.childAdded, with: { [weak self] (snapshot) -> Void in
+            guard let strongSelf = self else {
+                return
+            }
+            strongSelf.messages.append(snapshot)
+            strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
+        })
+    }
+    
+    func configureStorage() {
+        storageRef = Storage.storage().reference()
+    }
+    
     func sendMessage(withData data: [String: String]) {
         var mdata = data
-        mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.displayName
+        mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.uid
 //        if let photoURL = Auth.auth().currentUser?.photoURL {
 //            mdata[Constants.MessageFields.photoURL] = photoURL.absoluteString
 //        }
