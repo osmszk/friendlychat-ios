@@ -55,7 +55,7 @@ class FCViewController: UIViewController,
     
     deinit {
         if let refHandle = _refHandle {
-            self.ref.child(roomKey).removeObserver(withHandle: _refHandle)
+            self.ref.child(roomKey).removeObserver(withHandle: refHandle)
         }
     }
     
