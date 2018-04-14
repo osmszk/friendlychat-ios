@@ -29,10 +29,6 @@ import Firebase
 
 class ConversationViewController: MessagesViewController {
 
-    //MessageKit
-    private let refreshControl = UIRefreshControl()
-    private var messageList: [MockMessage] = []
-    
     //FriendlyChat
     private var ref: DatabaseReference!
     private var messages: [DataSnapshot]! = []
@@ -56,8 +52,6 @@ class ConversationViewController: MessagesViewController {
         messageInputBar.sendButton.tintColor = UIColor(red: 69/255, green: 193/255, blue: 89/255, alpha: 1)
         scrollsToBottomOnKeybordBeginsEditing = true // default false
         maintainPositionOnKeyboardFrameChanged = true // default false
-        
-        messagesCollectionView.addSubview(refreshControl)
         
         configureDatabase()
         configureStorage()
@@ -96,7 +90,6 @@ class ConversationViewController: MessagesViewController {
 extension ConversationViewController: MessagesDataSource {
 
     func currentSender() -> Sender {
-//        return SampleData.shared.currentSender
         let id = Auth.auth().currentUser?.uid ?? ""
         let displayName = Auth.auth().currentUser?.displayName ?? "NoName"
 //        print("currentSender",id,displayName)
@@ -104,13 +97,10 @@ extension ConversationViewController: MessagesDataSource {
     }
 
     func numberOfMessages(in messagesCollectionView: MessagesCollectionView) -> Int {
-//        return messageList.count
         return messages.count
     }
 
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
-//      ?  return messageList[indexPath.section]
-        
         let messageSnapshot: DataSnapshot! = self.messages[indexPath.section]
         let uniqueID = NSUUID().uuidString
         guard let message = messageSnapshot.value as? [String:String] else {
@@ -136,7 +126,8 @@ extension ConversationViewController: MessagesDataSource {
         struct ConversationDateFormatter {
             static let formatter: DateFormatter = {
                 let formatter = DateFormatter()
-                formatter.dateStyle = .medium
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.dateFormat = "H:mm"
                 return formatter
             }()
         }
@@ -144,14 +135,13 @@ extension ConversationViewController: MessagesDataSource {
         let dateString = formatter.string(from: message.sentDate)
         return NSAttributedString(string: dateString, attributes: [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .caption2)])
     }
-
 }
 
 // MARK: - MessagesDisplayDelegate
 
 extension ConversationViewController: MessagesDisplayDelegate {
 
-    // MARK: - Text Messages
+    // MARK: Text Messages
 
     func textColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
         return isFromCurrentSender(message: message) ? .white : .darkText
@@ -165,7 +155,7 @@ extension ConversationViewController: MessagesDisplayDelegate {
         return [.url, .address, .phoneNumber, .date]
     }
 
-    // MARK: - All Messages
+    // MARK: All Messages
     
     func backgroundColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
         return isFromCurrentSender(message: message) ? UIColor(red: 69/255, green: 193/255, blue: 89/255, alpha: 1) : UIColor(red: 230/255, green: 230/255, blue: 230/255, alpha: 1)
@@ -183,7 +173,7 @@ extension ConversationViewController: MessagesDisplayDelegate {
         avatarView.set(avatar: avatar)
     }
 
-    // MARK: - Location Messages
+    // MARK: Location Messages
 
     func annotationViewForLocation(message: MessageType, at indexPath: IndexPath, in messageCollectionView: MessagesCollectionView) -> MKAnnotationView? {
         let annotationView = MKAnnotationView(annotation: nil, reuseIdentifier: nil)
@@ -247,7 +237,7 @@ extension ConversationViewController: MessagesLayoutDelegate {
         return CGSize(width: messagesCollectionView.bounds.width, height: 10)
     }
 
-    // MARK: - Location Messages
+    // MARK: Location Messages
 
     func heightForLocation(message: MessageType, at indexPath: IndexPath, with maxWidth: CGFloat, in messagesCollectionView: MessagesCollectionView) -> CGFloat {
         return 200
@@ -305,8 +295,6 @@ extension ConversationViewController: MessageInputBarDelegate {
 
     func messageInputBar(_ inputBar: MessageInputBar, didPressSendButtonWith text: String) {
         
-        // Each NSTextAttachment that contains an image will count as one empty character in the text: String
-        
         for component in inputBar.inputTextView.components {
             
             if let _ = component as? UIImage {
@@ -331,5 +319,4 @@ extension ConversationViewController: MessageInputBarDelegate {
             self.messagesCollectionView.scrollToBottom()
         }
     }
-
 }
