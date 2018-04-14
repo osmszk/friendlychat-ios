@@ -30,7 +30,8 @@ class SignInViewController: UIViewController, GIDSignInUIDelegate {
         GIDSignIn.sharedInstance().signInSilently()
         handle = Auth.auth().addStateDidChangeListener() { (auth, user) in
             if user != nil {
-                self.performSegue(withIdentifier: Constants.Segues.SignInToFp, sender: nil)
+//                self.performSegue(withIdentifier: Constants.Segues.SignInToFp, sender: nil)
+                self.performSegue(withIdentifier: Constants.Segues.SignInToMK, sender: nil)
             }
         }
     }

@@ -25,29 +25,38 @@
 import UIKit
 import MessageKit
 import MapKit
+import Firebase
 
 class ConversationViewController: MessagesViewController {
 
-    let refreshControl = UIRefreshControl()
+    //MessageKit
+    private let refreshControl = UIRefreshControl()
+    private var messageList: [MockMessage] = []
     
-    var messageList: [MockMessage] = []
+    //FriendlyChat
+    private var ref: DatabaseReference!
+    private var messages: [DataSnapshot]! = []
+    private var msglength: NSNumber = 10
+    private  var _refHandle: DatabaseHandle!
     
-    var isTyping = false
+    private var storageRef: StorageReference!
+    private var remoteConfig: RemoteConfig!
+    
+    private let roomKey = "room1"
 
     override func viewDidLoad() {
         super.viewDidLoad()
     
-        let messagesToFetch = UserDefaults.standard.mockMessagesCount()
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            SampleData.shared.getMessages(count: messagesToFetch) { messages in
-                DispatchQueue.main.async {
-                    self.messageList = messages
-                    self.messagesCollectionView.reloadData()
-                    self.messagesCollectionView.scrollToBottom()
-                }
-            }
-        }
+//        let messagesToFetch = UserDefaults.standard.mockMessagesCount()
+//        DispatchQueue.global(qos: .userInitiated).async {
+//            SampleData.shared.getMessages(count: messagesToFetch) { messages in
+//                DispatchQueue.main.async {
+//                    self.messageList = messages
+//                    self.messagesCollectionView.reloadData()
+//                    self.messagesCollectionView.scrollToBottom()
+//                }
+//            }
+//        }
 
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
@@ -60,6 +69,36 @@ class ConversationViewController: MessagesViewController {
         maintainPositionOnKeyboardFrameChanged = true // default false
         
         messagesCollectionView.addSubview(refreshControl)
+        
+        configureDatabase()
+        configureStorage()
+    }
+    
+    deinit {
+        if let refHandle = _refHandle {
+            self.ref.child(roomKey).removeObserver(withHandle: refHandle)
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func configureDatabase() {
+        ref = Database.database().reference()
+        
+        _refHandle = self.ref.child(roomKey).observe(.childAdded, with: { [weak self] (snapshot) -> Void in
+            guard let strongSelf = self else {
+                return
+            }
+            print("observe................",snapshot)
+            strongSelf.messages.append(snapshot)
+            //TODO:fix?
+//            strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
+            strongSelf.messagesCollectionView.insertSections([strongSelf.messages.count - 1])
+        })
+    }
+    
+    func configureStorage() {
+        storageRef = Storage.storage().reference()
     }
     
     // MARK: - Keyboard Style
@@ -96,15 +135,34 @@ class ConversationViewController: MessagesViewController {
 extension ConversationViewController: MessagesDataSource {
 
     func currentSender() -> Sender {
-        return SampleData.shared.currentSender
+//        return SampleData.shared.currentSender
+        let id = Auth.auth().currentUser?.uid ?? ""
+        let displayName = Auth.auth().currentUser?.displayName ?? "NoName"
+//        print("currentSender",id,displayName)
+        return Sender(id: id, displayName: displayName)
     }
 
     func numberOfMessages(in messagesCollectionView: MessagesCollectionView) -> Int {
-        return messageList.count
+//        return messageList.count
+        return messages.count
     }
 
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
-        return messageList[indexPath.section]
+//      ?  return messageList[indexPath.section]
+        
+        let messageSnapshot: DataSnapshot! = self.messages[indexPath.section]
+        let uniqueID = NSUUID().uuidString
+        guard let message = messageSnapshot.value as? [String:String] else {
+            return MockMessage(text: "", sender: Sender(id: "", displayName: ""), messageId: uniqueID, date: Date())
+        }
+        
+        let name = message[Constants.MessageFields.name] ?? ""
+        let text = message[Constants.MessageFields.text] ?? ""
+        let uid = message[Constants.MessageFields.uid] ?? ""
+        
+        //TODO: fix?
+        let sender = Sender(id: uid, displayName: name)
+        return MockMessage(text: text, sender: sender, messageId: uniqueID, date: Date())
     }
 
     func cellTopLabelAttributedText(for message: MessageType, at indexPath: IndexPath) -> NSAttributedString? {
@@ -292,23 +350,34 @@ extension ConversationViewController: MessageInputBarDelegate {
             
             if let image = component as? UIImage {
                 
-                let imageMessage = MockMessage(image: image, sender: currentSender(), messageId: UUID().uuidString, date: Date())
-                messageList.append(imageMessage)
-                messagesCollectionView.insertSections([messageList.count - 1])
+//                let imageMessage = MockMessage(image: image, sender: currentSender(), messageId: UUID().uuidString, date: Date())
+//                messageList.append(imageMessage)
+//                messagesCollectionView.insertSections([messageList.count - 1])
                 
             } else if let text = component as? String {
                 
-                let attributedText = NSAttributedString(string: text, attributes: [.font: UIFont.systemFont(ofSize: 15), .foregroundColor: UIColor.blue])
+                let data = [Constants.MessageFields.text: text]
+                sendMessage(withData: data)
                 
-                let message = MockMessage(attributedText: attributedText, sender: currentSender(), messageId: UUID().uuidString, date: Date())
-                messageList.append(message)
-                messagesCollectionView.insertSections([messageList.count - 1])
+                
+//                let attributedText = NSAttributedString(string: text, attributes: [.font: UIFont.systemFont(ofSize: 15), .foregroundColor: UIColor.blue])
+//
+//                let message = MockMessage(attributedText: attributedText, sender: currentSender(), messageId: UUID().uuidString, date: Date())
+//                messageList.append(message)
+//                messagesCollectionView.insertSections([messageList.count - 1])
             }
             
         }
         
         inputBar.inputTextView.text = String()
         messagesCollectionView.scrollToBottom()
+    }
+    
+    func sendMessage(withData data: [String: String]) {
+        var mdata = data
+        mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.displayName
+        mdata[Constants.MessageFields.uid] = Auth.auth().currentUser?.uid
+        self.ref.child(roomKey).childByAutoId().setValue(mdata)
     }
 
 }

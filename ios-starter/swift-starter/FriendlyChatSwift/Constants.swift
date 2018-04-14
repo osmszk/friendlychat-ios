@@ -23,11 +23,13 @@ struct Constants {
   struct Segues {
     static let SignInToFp = "SignInToFP"
     static let FpToSignIn = "FPToSignIn"
+    static let SignInToMK = "SignInToMK"
   }
 
   struct MessageFields {
     static let name = "name"
     static let text = "text"
+    static let uid = "uid"
     static let photoURL = "photoURL"
     static let imageURL = "imageURL"
   }

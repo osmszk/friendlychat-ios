@@ -44,6 +44,7 @@
                     <connections>
                         <outlet property="signInButton" destination="zOL-0c-Cx3" id="pba-KS-Z7N"/>
                         <segue destination="uMT-A3-F60" kind="show" identifier="SignInToFP" id="axn-YP-kI7"/>
+                        <segue destination="ydy-ad-dEP" kind="show" identifier="SignInToMK" id="sn5-Jv-URD"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="txP-jG-AoV" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -225,7 +226,25 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dLT-eE-jeg" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="759" y="53"/>
+            <point key="canvasLocation" x="810" y="-54"/>
+        </scene>
+        <!--Conversation View Controller-->
+        <scene sceneID="qyP-lv-UGr">
+            <objects>
+                <viewController storyboardIdentifier="ConversationViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="ydy-ad-dEP" customClass="ConversationViewController" customModule="FriendlyChatSwift" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="3hH-hi-Zqq"/>
+                        <viewControllerLayoutGuide type="bottom" id="0DP-Zy-JVs"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="Qgp-Rr-iP2">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="MzF-CS-cSj" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="529" y="706"/>
         </scene>
     </scenes>
     <resources>
