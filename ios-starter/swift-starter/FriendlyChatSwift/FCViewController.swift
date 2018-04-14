@@ -18,15 +18,6 @@ import Photos
 import UIKit
 
 import Firebase
-import GoogleMobileAds
-import Crashlytics
-
-/**
- * AdMob ad unit IDs are not currently stored inside the google-services.plist file. Developers
- * using AdMob can store them as custom values in another plist, or simply use constants. Note that
- * these ad units are configured to return only test ads, and should not be used outside this sample.
- */
-let kBannerAdUnitID = "ca-app-pub-3940256099942544/2934735716"
 
 @objc(FCViewController)
 class FCViewController: UIViewController,
@@ -51,6 +42,8 @@ class FCViewController: UIViewController,
     @IBOutlet weak var banner: GADBannerView!
     @IBOutlet weak var clientTable: UITableView!
     
+    private let roomKey = "room1"
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -58,21 +51,20 @@ class FCViewController: UIViewController,
         
         configureDatabase()
         configureStorage()
-        configureRemoteConfig()
-        fetchConfig()
-        loadAd()
     }
     
     deinit {
         if let refHandle = _refHandle {
-            self.ref.child("messages").removeObserver(withHandle: _refHandle)
+            self.ref.child(roomKey).removeObserver(withHandle: _refHandle)
         }
     }
     
-    func configureDatabase() {
+    // MARK: - Private Methods
+    
+    private func configureDatabase() {
         ref = Database.database().reference()
         
-        _refHandle = self.ref.child("messages").observe(.childAdded, with: { [weak self] (snapshot) -> Void in
+        _refHandle = self.ref.child(roomKey).observe(.childAdded, with: { [weak self] (snapshot) -> Void in
             guard let strongSelf = self else {
                 return
             }
@@ -85,49 +77,10 @@ class FCViewController: UIViewController,
         storageRef = Storage.storage().reference()
     }
     
-    func configureRemoteConfig() {
-        remoteConfig = RemoteConfig.remoteConfig()
-        // Create Remote Config Setting to enable developer mode.
-        // Fetching configs from the server is normally limited to 5 requests per hour.
-        // Enabling developer mode allows many more requests to be made per hour, so developers
-        // can test different config values during development.
-        let remoteConfigSettings = RemoteConfigSettings(developerModeEnabled: true)
-        remoteConfig.configSettings = remoteConfigSettings!
-    }
-    
-    func fetchConfig() {
-        var expirationDuration: TimeInterval = 3600
-        // If in developer mode cacheExpiration is set to 0 so each fetch will retrieve values from
-        // the server.
-        if self.remoteConfig.configSettings.isDeveloperModeEnabled {
-            expirationDuration = 0
-        }
-        
-        // cacheExpirationSeconds is set to cacheExpiration here, indicating that any previously
-        // fetched and cached config would be considered expired because it would have been fetched
-        // more than cacheExpiration seconds ago. Thus the next fetch would go to the server unless
-        // throttling is in progress. The default expiration duration is 43200 (12 hours).
-        remoteConfig.fetch(withExpirationDuration: expirationDuration) { [weak self] (status, error) in
-            if status == .success {
-                print("Config fetched!")
-                guard let strongSelf = self else { return }
-                strongSelf.remoteConfig.activateFetched()
-                let friendlyMsgLength = strongSelf.remoteConfig["friendly_msg_length"]
-                if friendlyMsgLength.source != .static {
-                    strongSelf.msglength = friendlyMsgLength.numberValue!
-                    print("Friendly msg length config: \(strongSelf.msglength)")
-                }
-            } else {
-                print("Config not fetched")
-                if let error = error {
-                    print("Error \(error)")
-                }
-            }
-        }
-    }
+    // MARK: - Action Methods
     
     @IBAction func didPressFreshConfig(_ sender: AnyObject) {
-        fetchConfig()
+        
     }
     
     @IBAction func didSendMessage(_ sender: UIButton) {
@@ -164,8 +117,8 @@ class FCViewController: UIViewController,
         }
     }
     
-    func loadAd() {
-    }
+    
+    // MARK: - UITextFieldDelegate
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         guard let text = textField.text else { return true }
@@ -174,7 +127,8 @@ class FCViewController: UIViewController,
         return newLength <= self.msglength.intValue // Bool
     }
     
-    // UITableViewDataSource protocol methods
+    // MARK: - UITableViewDataSource
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messages.count
     }
@@ -218,7 +172,9 @@ class FCViewController: UIViewController,
     
     // UITextViewDelegate protocol methods
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let text = textField.text else { return true }
+        guard let text = textField.text else {
+            return true
+        }
         textField.text = ""
         view.endEditing(true)
         let data = [Constants.MessageFields.text: text]
@@ -229,12 +185,12 @@ class FCViewController: UIViewController,
     func sendMessage(withData data: [String: String]) {
         var mdata = data
         mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.displayName
-        if let photoURL = Auth.auth().currentUser?.photoURL {
-            mdata[Constants.MessageFields.photoURL] = photoURL.absoluteString
-        }
+//        if let photoURL = Auth.auth().currentUser?.photoURL {
+//            mdata[Constants.MessageFields.photoURL] = photoURL.absoluteString
+//        }
         
         // Push data to Firebase Database
-        self.ref.child("messages").childByAutoId().setValue(mdata)
+        self.ref.child(roomKey).childByAutoId().setValue(mdata)
     }
     
     // MARK: - Image Picker
