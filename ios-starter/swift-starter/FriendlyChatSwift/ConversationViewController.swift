@@ -35,6 +35,13 @@ struct ConversationDateFormatter {
         return formatter
     }()
     
+    static let formatterDayChat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "M/d"
+        return formatter
+    }()
+    
     static let formatterYearDate: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -48,7 +55,6 @@ class ConversationViewController: MessagesViewController {
     //FriendlyChat
     private var ref: DatabaseReference!
     private var messages: [DataSnapshot]! = []
-    private var msglength: NSNumber = 10
     private  var _refHandle: DatabaseHandle!
     
     private var storageRef: StorageReference!
@@ -175,6 +181,25 @@ extension ConversationViewController: MessagesDisplayDelegate {
     
     func backgroundColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
         return isFromCurrentSender(message: message) ? UIColor(red: 69/255, green: 193/255, blue: 89/255, alpha: 1) : UIColor(red: 230/255, green: 230/255, blue: 230/255, alpha: 1)
+    }
+    
+    func messageHeaderView(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageHeaderView {
+        let header = messagesCollectionView.dequeueReusableHeaderView(MessageDateHeaderView.self, for: indexPath)
+        header.dateLabel.text = Date.diffStringFromDate(message.sentDate, onChat: true)
+        return header
+    }
+    
+    func shouldDisplayHeader(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> Bool {
+        guard let dataSource = messagesCollectionView.messagesDataSource else { return false }
+        if indexPath.section == 0 {
+            return true
+        }
+        let previousSection = indexPath.section - 1
+        let previousIndexPath = IndexPath(item: 0, section: previousSection)
+        let previousMessage = dataSource.messageForItem(at: previousIndexPath, in: messagesCollectionView)
+        return !previousMessage.sentDate.isEqualToDateIgnoringTime(message.sentDate)        
+//        let timeIntervalSinceLastMessage = message.sentDate.timeIntervalSince(previousMessage.sentDate)
+//        return timeIntervalSinceLastMessage >= messagesCollectionView.showsDateHeaderAfterTimeInterval
     }
 
     func messageStyle(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageStyle {
