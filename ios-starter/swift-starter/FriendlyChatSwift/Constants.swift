@@ -30,6 +30,8 @@ struct Constants {
     static let name = "name"
     static let text = "text"
     static let uid = "uid"
+    static let sentDate = "sent_date"
+    
     static let photoURL = "photoURL"
     static let imageURL = "imageURL"
   }

@@ -27,6 +27,22 @@ import MessageKit
 import MapKit
 import Firebase
 
+struct ConversationDateFormatter {
+    static let formatterTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "H:mm"
+        return formatter
+    }()
+    
+    static let formatterYearDate: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HH:mm:ss"
+        return formatter
+    }()
+}
+
 class ConversationViewController: MessagesViewController {
 
     //FriendlyChat
@@ -110,28 +126,28 @@ extension ConversationViewController: MessagesDataSource {
         let name = message[Constants.MessageFields.name] ?? ""
         let text = message[Constants.MessageFields.text] ?? ""
         let uid = message[Constants.MessageFields.uid] ?? ""
+        let sentDateStr = message[Constants.MessageFields.sentDate] ?? ""
+        let formatter = ConversationDateFormatter.formatterYearDate
+        let sentDate = formatter.date(from: sentDateStr) ?? Date()
         
         //TODO: fix?
         let sender = Sender(id: uid, displayName: name)
-        return MockMessage(text: text, sender: sender, messageId: uniqueID, date: Date())
+        return MockMessage(text: text, sender: sender, messageId: uniqueID, date: sentDate)
     }
 
     func cellTopLabelAttributedText(for message: MessageType, at indexPath: IndexPath) -> NSAttributedString? {
-        let name = message.sender.displayName
-        return NSAttributedString(string: name, attributes: [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .caption1)])
+        //最初の6文字取得
+        let uid = message.sender.id
+        if uid.count > 6 {
+            return NSAttributedString(string: String(uid[0..<6]), attributes: [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .caption1)])
+        } else {
+            return NSAttributedString(string: String("NoName"), attributes: [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .caption1)])
+        }
     }
 
     func cellBottomLabelAttributedText(for message: MessageType, at indexPath: IndexPath) -> NSAttributedString? {
         
-        struct ConversationDateFormatter {
-            static let formatter: DateFormatter = {
-                let formatter = DateFormatter()
-                formatter.locale = Locale(identifier: "en_US_POSIX")
-                formatter.dateFormat = "H:mm"
-                return formatter
-            }()
-        }
-        let formatter = ConversationDateFormatter.formatter
+        let formatter = ConversationDateFormatter.formatterTime
         let dateString = formatter.string(from: message.sentDate)
         return NSAttributedString(string: dateString, attributes: [NSAttributedStringKey.font: UIFont.preferredFont(forTextStyle: .caption2)])
     }
@@ -317,6 +333,8 @@ extension ConversationViewController: MessageInputBarDelegate {
         var mdata = data
         mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.displayName
         mdata[Constants.MessageFields.uid] = Auth.auth().currentUser?.uid
+        let formatter = ConversationDateFormatter.formatterYearDate
+        mdata[Constants.MessageFields.sentDate] = formatter.string(from: Date())
         self.ref.child(roomKey).childByAutoId().setValue(mdata)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
