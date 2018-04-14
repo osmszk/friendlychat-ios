@@ -169,8 +169,12 @@ extension ConversationViewController: MessagesDisplayDelegate {
     }
     
     func configureAvatarView(_ avatarView: AvatarView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
-        let avatar = SampleData.shared.getAvatarFor(sender: message.sender)
-        avatarView.set(avatar: avatar)
+
+        let name = message.sender.displayName
+        //1文字目取得
+        //https://stackoverflow.com/questions/24092884/get-nth-character-of-a-string-in-swift-programming-language
+        let initial = name[name.index(name.startIndex, offsetBy: 0)]
+        avatarView.set(avatar: Avatar(initials: String(initial)))
     }
 
     // MARK: Location Messages
