@@ -21,24 +21,24 @@ import GoogleSignIn
 
 @objc(SignInViewController)
 class SignInViewController: UIViewController, GIDSignInUIDelegate {
-  @IBOutlet weak var signInButton: GIDSignInButton!
-  var handle: AuthStateDidChangeListenerHandle?
+    @IBOutlet weak var signInButton: GIDSignInButton!
+    var handle: AuthStateDidChangeListenerHandle?
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    GIDSignIn.sharedInstance().uiDelegate = self
-    GIDSignIn.sharedInstance().signInSilently()
-    handle = Auth.auth().addStateDidChangeListener() { (auth, user) in
-        if user != nil {
-            MeasurementHelper.sendLoginEvent()
-            self.performSegue(withIdentifier: Constants.Segues.SignInToFp, sender: nil)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        GIDSignIn.sharedInstance().uiDelegate = self
+        GIDSignIn.sharedInstance().signInSilently()
+        handle = Auth.auth().addStateDidChangeListener() { (auth, user) in
+            if user != nil {
+                MeasurementHelper.sendLoginEvent()
+                self.performSegue(withIdentifier: Constants.Segues.SignInToFp, sender: nil)
+            }
         }
     }
-  }
-
-  deinit {
-    if let handle = handle {
-        Auth.auth().removeStateDidChangeListener(handle)
+    
+    deinit {
+        if let handle = handle {
+            Auth.auth().removeStateDidChangeListener(handle)
+        }
     }
-  }
 }
