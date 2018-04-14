@@ -309,19 +309,12 @@ extension ConversationViewController: MessageInputBarDelegate {
         
         for component in inputBar.inputTextView.components {
             
-            if let image = component as? UIImage {
-                
-//                let imageMessage = MockMessage(image: image, sender: currentSender(), messageId: UUID().uuidString, date: Date())
-//                messageList.append(imageMessage)
-//                messagesCollectionView.insertSections([messageList.count - 1])
-                
+            if let _ = component as? UIImage {
+                //image sending
             } else if let text = component as? String {
-                
                 let data = [Constants.MessageFields.text: text]
                 sendMessage(withData: data)
-                
             }
-            
         }
         
         inputBar.inputTextView.text = String()
@@ -334,8 +327,9 @@ extension ConversationViewController: MessageInputBarDelegate {
         mdata[Constants.MessageFields.uid] = Auth.auth().currentUser?.uid
         self.ref.child(roomKey).childByAutoId().setValue(mdata)
         
-        
-        //messagesCollectionView.scrollToBottom()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.messagesCollectionView.scrollToBottom()
+        }
     }
 
 }
