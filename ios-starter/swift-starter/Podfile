@@ -1,7 +1,7 @@
 # FriendlyChat Codelab
 
 use_frameworks!
-platform :ios, '7.0'
+platform :ios, '9.0'
 
 pod 'Firebase/AdMob'
 pod 'Firebase/Auth'
@@ -13,4 +13,14 @@ pod 'Fabric', '~> 1.7.2'
 pod 'Crashlytics', '~> 3.9.3'
 
 target 'FriendlyChatSwift' do
+    pod 'MessageKit'
+    post_install do |installer|
+        installer.pods_project.targets.each do |target|
+            if target.name == 'MessageKit'
+                target.build_configurations.each do |config|
+                    config.build_settings['SWIFT_VERSION'] = '4.0'
+                end
+            end
+        end
+    end
 end
