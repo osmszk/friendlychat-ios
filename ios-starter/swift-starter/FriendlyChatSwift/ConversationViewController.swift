@@ -47,17 +47,6 @@ class ConversationViewController: MessagesViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
     
-//        let messagesToFetch = UserDefaults.standard.mockMessagesCount()
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            SampleData.shared.getMessages(count: messagesToFetch) { messages in
-//                DispatchQueue.main.async {
-//                    self.messageList = messages
-//                    self.messagesCollectionView.reloadData()
-//                    self.messagesCollectionView.scrollToBottom()
-//                }
-//            }
-//        }
-
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
@@ -89,10 +78,8 @@ class ConversationViewController: MessagesViewController {
             guard let strongSelf = self else {
                 return
             }
-            print("observe................",snapshot)
+            print("observing....",snapshot)
             strongSelf.messages.append(snapshot)
-            //TODO:fix?
-//            strongSelf.clientTable.insertRows(at: [IndexPath(row: strongSelf.messages.count-1, section: 0)], with: .automatic)
             strongSelf.messagesCollectionView.insertSections([strongSelf.messages.count - 1])
         })
     }
@@ -101,33 +88,7 @@ class ConversationViewController: MessagesViewController {
         storageRef = Storage.storage().reference()
     }
     
-    // MARK: - Keyboard Style
-
     
-    func defaultStyle() {
-        let newMessageInputBar = MessageInputBar()
-        newMessageInputBar.sendButton.tintColor = UIColor(red: 69/255, green: 193/255, blue: 89/255, alpha: 1)
-        newMessageInputBar.delegate = self
-        messageInputBar = newMessageInputBar
-        reloadInputViews()
-    }
-    
-    // MARK: - Helpers
-    
-    func makeButton(named: String) -> InputBarButtonItem {
-        return InputBarButtonItem()
-            .configure {
-                $0.spacing = .fixed(10)
-                $0.image = UIImage(named: named)?.withRenderingMode(.alwaysTemplate)
-                $0.setSize(CGSize(width: 30, height: 30), animated: true)
-            }.onSelected {
-                $0.tintColor = UIColor(red: 69/255, green: 193/255, blue: 89/255, alpha: 1)
-            }.onDeselected {
-                $0.tintColor = UIColor.lightGray
-            }.onTouchUpInside { _ in
-                print("Item Tapped")
-        }
-    }
 }
 
 // MARK: - MessagesDataSource
@@ -359,12 +320,6 @@ extension ConversationViewController: MessageInputBarDelegate {
                 let data = [Constants.MessageFields.text: text]
                 sendMessage(withData: data)
                 
-                
-//                let attributedText = NSAttributedString(string: text, attributes: [.font: UIFont.systemFont(ofSize: 15), .foregroundColor: UIColor.blue])
-//
-//                let message = MockMessage(attributedText: attributedText, sender: currentSender(), messageId: UUID().uuidString, date: Date())
-//                messageList.append(message)
-//                messagesCollectionView.insertSections([messageList.count - 1])
             }
             
         }
@@ -378,6 +333,9 @@ extension ConversationViewController: MessageInputBarDelegate {
         mdata[Constants.MessageFields.name] = Auth.auth().currentUser?.displayName
         mdata[Constants.MessageFields.uid] = Auth.auth().currentUser?.uid
         self.ref.child(roomKey).childByAutoId().setValue(mdata)
+        
+        
+        //messagesCollectionView.scrollToBottom()
     }
 
 }
