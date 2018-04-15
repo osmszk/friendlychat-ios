@@ -197,7 +197,7 @@ extension ConversationViewController: MessagesDisplayDelegate {
         let previousSection = indexPath.section - 1
         let previousIndexPath = IndexPath(item: 0, section: previousSection)
         let previousMessage = dataSource.messageForItem(at: previousIndexPath, in: messagesCollectionView)
-        return !previousMessage.sentDate.isEqualToDateIgnoringTime(message.sentDate)        
+        return !previousMessage.sentDate.isEqualToDateIgnoringTime(message.sentDate)
 //        let timeIntervalSinceLastMessage = message.sentDate.timeIntervalSince(previousMessage.sentDate)
 //        return timeIntervalSinceLastMessage >= messagesCollectionView.showsDateHeaderAfterTimeInterval
     }
@@ -212,9 +212,8 @@ extension ConversationViewController: MessagesDisplayDelegate {
     func configureAvatarView(_ avatarView: AvatarView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
 
         let name = message.sender.displayName
-        //1文字目取得
-        //https://stackoverflow.com/questions/24092884/get-nth-character-of-a-string-in-swift-programming-language
-        let initial = name[name.index(name.startIndex, offsetBy: 0)]
+        //String extension
+        let initial = name[0]
         avatarView.set(avatar: Avatar(initials: String(initial)))
     }
 
